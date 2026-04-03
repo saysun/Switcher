@@ -5,6 +5,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 APP_NAME="Switcher"
 APP_BUNDLE="$PROJECT_DIR/$APP_NAME.app"
+INSTALLED="/Applications/$APP_NAME.app"
 BUNDLE_ID="com.switcher.app"
 
 cd "$PROJECT_DIR"
@@ -27,16 +28,20 @@ cp "Resources/Info.plist" "$APP_BUNDLE/Contents/"
 xattr -cr "$APP_BUNDLE"
 codesign --force --sign - "$APP_BUNDLE"
 
-# 5. Reset accessibility for this app so macOS re-prompts
+# 5. Install to /Applications
+echo "Installing to $INSTALLED..."
+rm -rf "$INSTALLED"
+cp -rf "$APP_BUNDLE" "$INSTALLED"
+
+# 6. Reset accessibility so macOS re-prompts
 tccutil reset Accessibility "$BUNDLE_ID" 2>/dev/null || true
 
-# 6. Launch
+# 7. Launch from /Applications
 echo ""
-echo "Launching $APP_NAME..."
+echo "Launching $APP_NAME from /Applications..."
 echo "(Grant Accessibility when prompted)"
 echo ""
-"$APP_BUNDLE/Contents/MacOS/$APP_NAME" &
+"$INSTALLED/Contents/MacOS/$APP_NAME" &
 disown
 
-echo "Done — $APP_NAME is running."
-echo "Install to /Applications:  cp -rf $APP_BUNDLE /Applications/"
+echo "Done — $APP_NAME is running from /Applications."
