@@ -75,6 +75,7 @@ final class SpaceManager {
 
         if !trusted {
             NSLog("[Switcher] Accessibility NOT granted — cannot simulate key events")
+            AccessibilityPrompt.warnSwitchBlockedIfNeeded()
             return
         }
 

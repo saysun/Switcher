@@ -63,7 +63,18 @@ final class ConfigStore {
         guard let data = try? Data(contentsOf: fileURL),
               let decoded = try? JSONDecoder().decode(ShortcutConfig.self, from: data)
         else { return }
-        shortcut = decoded
+
+        if Self.isValidShortcut(decoded) {
+            shortcut = decoded
+        } else {
+            shortcut = .default
+            save()
+        }
+    }
+
+    /// Carbon requires at least one modifier for a typical global hotkey.
+    private static func isValidShortcut(_ sc: ShortcutConfig) -> Bool {
+        sc.modifiers != 0
     }
 
     private func save() {

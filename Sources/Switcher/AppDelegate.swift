@@ -7,6 +7,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         promptAccessibilityIfNeeded()
         statusBarManager = StatusBarManager()
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+            AccessibilityPrompt.showIfUntrustedOnLaunch()
+        }
     }
 
     private func promptAccessibilityIfNeeded() {

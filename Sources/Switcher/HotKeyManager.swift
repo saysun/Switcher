@@ -31,7 +31,7 @@ final class HotKeyManager {
                 eventClass: OSType(kEventClassKeyboard),
                 eventKind: UInt32(kEventHotKeyPressed)
             )
-            InstallEventHandler(
+            let installStatus = InstallEventHandler(
                 GetEventDispatcherTarget(),
                 hotKeyCallback,
                 1,
@@ -39,11 +39,14 @@ final class HotKeyManager {
                 nil,
                 &handlerRef
             )
+            if installStatus != noErr {
+                NSLog("[Switcher] InstallEventHandler failed: %d", installStatus)
+            }
             handlerInstalled = true
         }
 
         let hotKeyID = EventHotKeyID(signature: OSType(0x53575448), id: 1)
-        RegisterEventHotKey(
+        let regStatus = RegisterEventHotKey(
             keyCode,
             modifiers,
             hotKeyID,
@@ -51,6 +54,9 @@ final class HotKeyManager {
             0,
             &hotKeyRef
         )
+        if regStatus != noErr {
+            NSLog("[Switcher] RegisterEventHotKey failed: %d (key %u mods %u)", regStatus, keyCode, modifiers)
+        }
     }
 
     func trigger() {
