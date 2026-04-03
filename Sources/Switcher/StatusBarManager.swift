@@ -4,7 +4,9 @@ final class StatusBarManager {
     private let statusItem: NSStatusItem
     private let spaceManager = SpaceManager.shared
     private let store = SpaceNameStore.shared
+    private let config = ConfigStore.shared
     private var renamePanel: RenamePanel?
+    private var shortcutPanel: ShortcutPanel?
 
     init() {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
@@ -26,6 +28,16 @@ final class StatusBarManager {
             name: NSWorkspace.activeSpaceDidChangeNotification,
             object: nil
         )
+
+        HotKeyManager.shared.onTrigger = { [weak self] in
+            self?.statusItem.button?.performClick(nil)
+        }
+        registerCurrentShortcut()
+    }
+
+    private func registerCurrentShortcut() {
+        let sc = config.shortcut
+        HotKeyManager.shared.register(keyCode: sc.keyCode, modifiers: sc.modifiers)
     }
 
     // MARK: - Sync & Refresh
@@ -94,6 +106,19 @@ final class StatusBarManager {
             menu.addItem(.separator())
         }
 
+        let hint = NSMenuItem(title: "Shortcut: \(config.shortcut.displayString)", action: nil, keyEquivalent: "")
+        hint.isEnabled = false
+        menu.addItem(hint)
+
+        let configItem = NSMenuItem(
+            title: "Configure Shortcut\u{2026}",
+            action: #selector(handleConfigureShortcut),
+            keyEquivalent: ""
+        )
+        configItem.target = self
+        menu.addItem(configItem)
+        menu.addItem(.separator())
+
         let quit = NSMenuItem(title: "Quit Switcher", action: #selector(handleQuit), keyEquivalent: "q")
         quit.target = self
         menu.addItem(quit)
@@ -114,6 +139,15 @@ final class StatusBarManager {
             self?.syncAndRefresh()
         }
         renamePanel?.show()
+    }
+
+    @objc private func handleConfigureShortcut() {
+        shortcutPanel = ShortcutPanel()
+        shortcutPanel?.onChange = { [weak self] in
+            self?.registerCurrentShortcut()
+            self?.syncAndRefresh()
+        }
+        shortcutPanel?.show()
     }
 
     @objc private func handleQuit() {
