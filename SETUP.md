@@ -115,7 +115,39 @@ Switcher relies on the built-in macOS keyboard shortcuts for switching desktops 
 
 ---
 
-## 3. Verify Setup
+## 3. After each rebuild (or when switching stops working)
+
+Every time you run `./scripts/bundle.sh` and copy a new `Switcher.app`, the app is **re-signed**. macOS treats that as a **new binary** for **Accessibility**. The old permission often **does not apply** to the new binary, so **desktop switching silently fails** until you fix Accessibility again.
+
+**Do this in order:**
+
+1. **Quit Switcher completely**  
+   Menu bar → **Quit Switcher** (or Activity Monitor → quit `Switcher`).
+
+2. **Install one canonical copy** (recommended)  
+   Always use the same path so you are not mixing two builds:
+   ```bash
+   cp -rf /path/to/switcher/Switcher.app /Applications/
+   ```
+   Launch **only** `/Applications/Switcher.app` after this (not an old copy in Xcode project folder unless that is the one you added to Accessibility).
+
+3. **Re-attach Accessibility**  
+   Open **System Settings** → **Privacy & Security** → **Accessibility**
+   - If **Switcher** appears **twice**, remove one entry (minus button) and keep a single entry.
+   - Toggle **Switcher** **OFF**, then **ON** again.
+   - If it still does not work: **remove** Switcher from the list (−), then **+** → choose **`/Applications/Switcher.app`** (use **Show Package Contents** if needed, pick the app bundle, not the folder).
+
+4. **Launch Switcher** from `/Applications` (double-click or Spotlight).
+
+5. **Mission Control shortcuts** (section 2)  
+   You usually **do not** need to re-enable **Switch to Desktop 1–9** after a rebuild. Only check them if switching still fails after step 3–4.
+
+6. **Confirm**  
+   Open the menu → pick another desktop. If it still fails, open **Console.app**, filter **Switcher**, and look for a log line like `accessibility trusted: NO` — that means step 3 still needs to be done for the binary you are actually running.
+
+---
+
+## 4. Verify Setup
 
 After completing both steps above, quit and relaunch Switcher. The menu bar should display the current desktop name.
 
@@ -130,7 +162,7 @@ Click the menu item to see all desktops and switch between them.
 
 ---
 
-## 4. Optional: Configure Global Shortcut
+## 5. Optional: Configure Global Shortcut
 
 You can set a custom global shortcut to quickly trigger the Switcher menu from any application.
 
@@ -159,7 +191,8 @@ You can set a custom global shortcut to quickly trigger the Switcher menu from a
 
 | Issue | Solution |
 |-------|----------|
-| Desktop switching doesn't work | Ensure Accessibility permission is granted |
+| Desktop switching doesn't work after rebuild or restart | Follow **section 3** (toggle or remove/re-add Accessibility for the **exact** binary you launch; use `/Applications/Switcher.app` only) |
+| Desktop switching doesn't work (general) | Ensure Accessibility is ON; Mission Control shortcuts **Switch to Desktop 1–9** enabled |
 | Shortcut not responding | Check that the shortcut doesn't conflict with other apps |
 | "No desktops detected" | Ensure you have multiple spaces created in Mission Control |
 | App appears in Dock | Switcher is a menu-bar only app and should not appear in Dock |

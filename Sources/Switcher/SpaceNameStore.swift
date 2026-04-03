@@ -52,6 +52,12 @@ final class SpaceNameStore {
         save()
     }
 
+    /// Remove all custom names; UI falls back to "Desktop 1", "Desktop 2", …
+    func clearAllNames() {
+        namesBySpaceID = [:]
+        save()
+    }
+
     // MARK: - Persistence
 
     private struct Storage: Codable {

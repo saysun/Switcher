@@ -117,6 +117,14 @@ final class StatusBarManager: NSObject, NSMenuDelegate {
             )
             renameItem.target = self
             menu.addItem(renameItem)
+
+            let clearItem = NSMenuItem(
+                title: "Clear Desktop Names\u{2026}",
+                action: #selector(handleClearAllNames),
+                keyEquivalent: ""
+            )
+            clearItem.target = self
+            menu.addItem(clearItem)
             menu.addItem(.separator())
         }
 
@@ -213,6 +221,21 @@ final class StatusBarManager: NSObject, NSMenuDelegate {
             self?.syncAndRefresh()
         }
         renamePanel?.show()
+    }
+
+    @objc private func handleClearAllNames() {
+        let alert = NSAlert()
+        alert.messageText = "Clear all desktop names?"
+        alert.informativeText = "Custom names will be removed. Desktops will show as Desktop 1, Desktop 2, and so on."
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: "Clear")
+        alert.addButton(withTitle: "Cancel")
+
+        NSApp.activate(ignoringOtherApps: true)
+        guard alert.runModal() == .alertFirstButtonReturn else { return }
+
+        store.clearAllNames()
+        syncAndRefresh()
     }
 
     @objc private func handleConfigureShortcut() {

@@ -6,8 +6,8 @@ struct ShortcutConfig: Codable, Equatable {
     var modifiers: UInt32
 
     static let `default` = ShortcutConfig(
-        keyCode: UInt32(kVK_ANSI_S),
-        modifiers: UInt32(controlKey | optionKey)
+        keyCode: UInt32(kVK_ANSI_W),
+        modifiers: UInt32(cmdKey | shiftKey)
     )
 
     var displayString: String {
