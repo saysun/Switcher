@@ -10,6 +10,11 @@ final class StatusBarManager {
 
         if let button = statusItem.button {
             button.font = NSFont.monospacedSystemFont(ofSize: 12, weight: .medium)
+            if let img = NSImage(systemSymbolName: "desktopcomputer", accessibilityDescription: "Switcher") {
+                img.isTemplate = true
+                button.image = img
+                button.imagePosition = .imageLeading
+            }
         }
 
         updateTitle()
@@ -27,10 +32,10 @@ final class StatusBarManager {
 
     private func updateTitle() {
         guard let index = spaceManager.activeDesktopIndex() else {
-            statusItem.button?.title = "◆ —"
+            statusItem.button?.title = "—"
             return
         }
-        statusItem.button?.title = "◆ \(store.name(for: index))"
+        statusItem.button?.title = store.name(for: index)
     }
 
     // MARK: - Menu

@@ -65,18 +65,33 @@ final class SpaceManager {
 
     /// Simulate Ctrl+<number> to switch to the given 1-based desktop index (1–9).
     func switchTo(desktopIndex index: Int) {
-        guard index >= 1, index <= Self.numberKeyCodes.count else { return }
+        guard index >= 1, index <= Self.numberKeyCodes.count else {
+            NSLog("[Switcher] switchTo: index %d out of range", index)
+            return
+        }
+
+        let trusted = AXIsProcessTrusted()
+        NSLog("[Switcher] switchTo desktop %d — accessibility trusted: %@", index, trusted ? "YES" : "NO")
+
+        if !trusted {
+            NSLog("[Switcher] Accessibility NOT granted — cannot simulate key events")
+            return
+        }
 
         let keyCode = Self.numberKeyCodes[index - 1]
         let source = CGEventSource(stateID: .hidSystemState)
 
         guard let down = CGEvent(keyboardEventSource: source, virtualKey: keyCode, keyDown: true),
               let up   = CGEvent(keyboardEventSource: source, virtualKey: keyCode, keyDown: false)
-        else { return }
+        else {
+            NSLog("[Switcher] Failed to create CGEvent")
+            return
+        }
 
         down.flags = .maskControl
         up.flags   = .maskControl
         down.post(tap: .cgSessionEventTap)
         up.post(tap: .cgSessionEventTap)
+        NSLog("[Switcher] Posted Ctrl+%d (keyCode %d)", index, keyCode)
     }
 }
