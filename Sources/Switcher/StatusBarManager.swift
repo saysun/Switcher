@@ -4,6 +4,7 @@ final class StatusBarManager {
     private let statusItem: NSStatusItem
     private let spaceManager = SpaceManager.shared
     private let store = SpaceNameStore.shared
+    private var renamePanel: RenamePanel?
 
     init() {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
@@ -83,21 +84,13 @@ final class StatusBarManager {
         menu.addItem(.separator())
 
         if !spaceIDs.isEmpty {
-            let renameParent = NSMenuItem(title: "Rename Desktop", action: nil, keyEquivalent: "")
-            let renameSub = NSMenu()
-            for (i, sid) in spaceIDs.enumerated() {
-                let pos = i + 1
-                let sub = NSMenuItem(
-                    title: "\(pos). \(store.name(forSpaceID: sid, position: pos))",
-                    action: #selector(handleRename(_:)),
-                    keyEquivalent: ""
-                )
-                sub.target = self
-                sub.tag = pos
-                renameSub.addItem(sub)
-            }
-            renameParent.submenu = renameSub
-            menu.addItem(renameParent)
+            let renameItem = NSMenuItem(
+                title: "Rename Desktops\u{2026}",
+                action: #selector(handleRenameAll),
+                keyEquivalent: ""
+            )
+            renameItem.target = self
+            menu.addItem(renameItem)
             menu.addItem(.separator())
         }
 
@@ -114,31 +107,13 @@ final class StatusBarManager {
         spaceManager.switchTo(desktopIndex: sender.tag)
     }
 
-    @objc private func handleRename(_ sender: NSMenuItem) {
-        let pos = sender.tag
+    @objc private func handleRenameAll() {
         let spaceIDs = spaceManager.desktopSpaceIDs()
-        guard pos >= 1, pos <= spaceIDs.count else { return }
-        let spaceID = spaceIDs[pos - 1]
-        let currentName = store.name(forSpaceID: spaceID, position: pos)
-
-        let alert = NSAlert()
-        alert.messageText = "Rename Desktop \(pos)"
-        alert.informativeText = "Enter a new name for this desktop:"
-        alert.addButton(withTitle: "Save")
-        alert.addButton(withTitle: "Cancel")
-        alert.alertStyle = .informational
-
-        let field = NSTextField(frame: NSRect(x: 0, y: 0, width: 260, height: 24))
-        field.stringValue = currentName
-        field.placeholderString = "Desktop \(pos)"
-        alert.accessoryView = field
-        alert.window.initialFirstResponder = field
-
-        NSApp.activate(ignoringOtherApps: true)
-
-        guard alert.runModal() == .alertFirstButtonReturn else { return }
-        store.setName(field.stringValue, forSpaceID: spaceID, position: pos)
-        syncAndRefresh()
+        renamePanel = RenamePanel(spaceIDs: spaceIDs)
+        renamePanel?.onUpdate = { [weak self] in
+            self?.syncAndRefresh()
+        }
+        renamePanel?.show()
     }
 
     @objc private func handleQuit() {
