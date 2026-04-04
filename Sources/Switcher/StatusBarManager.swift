@@ -1,6 +1,6 @@
 import AppKit
 
-final class StatusBarManager: NSObject {
+final class StatusBarManager: NSObject, NSTextViewDelegate {
     private let statusItem: NSStatusItem
     private let spaceManager = SpaceManager.shared
     private let store = SpaceNameStore.shared
@@ -245,17 +245,56 @@ final class StatusBarManager: NSObject {
     @objc private func handleAbout() {
         let alert = NSAlert()
         alert.messageText = "Switcher"
-        alert.informativeText = """
-            Version \(Self.appMarketingVersion)
-
-            A lightweight menu bar utility for naming \
-            and switching between macOS desktop Spaces.
-
-            Shortcut: \(config.shortcut.displayString)
-            Config: ~/.config/switcher/
-            """
+        alert.informativeText = ""
         alert.alertStyle = .informational
         alert.addButton(withTitle: "OK")
+
+        let contentWidth: CGFloat = 320
+        let scroll = NSScrollView(frame: NSRect(x: 0, y: 0, width: contentWidth, height: 148))
+        scroll.hasVerticalScroller = true
+        scroll.autohidesScrollers = true
+        scroll.borderType = .noBorder
+        scroll.drawsBackground = false
+
+        let tv = NSTextView(frame: scroll.bounds)
+        tv.autoresizingMask = [.width, .height]
+        tv.isEditable = false
+        tv.isSelectable = true
+        tv.drawsBackground = false
+        tv.textContainerInset = NSSize(width: 2, height: 4)
+        tv.isVerticallyResizable = true
+        tv.isHorizontallyResizable = false
+        tv.textContainer?.widthTracksTextView = true
+        tv.textContainer?.containerSize = NSSize(width: contentWidth - 8, height: 10_000)
+        tv.linkTextAttributes = [
+            .foregroundColor: NSColor.linkColor,
+            .underlineStyle: NSUnderlineStyle.single.rawValue,
+        ]
+        tv.delegate = self
+
+        let font = NSFont.systemFont(ofSize: NSFont.smallSystemFontSize)
+        let para = NSMutableParagraphStyle()
+        para.lineBreakMode = .byWordWrapping
+        let base: [NSAttributedString.Key: Any] = [
+            .font: font,
+            .paragraphStyle: para,
+            .foregroundColor: NSColor.labelColor,
+        ]
+
+        let paypalURL = URL(string: "https://paypal.me/sunayong")!
+        let body = NSMutableAttributedString()
+        body.append(NSAttributedString(string: "Version \(Self.appMarketingVersion)\n\n", attributes: base))
+        body.append(NSAttributedString(string: "A lightweight menu bar utility for naming and switching between macOS desktop Spaces.\n\n", attributes: base))
+        body.append(NSAttributedString(string: "If Switcher makes your Spaces less chaotic, a coffee would brighten my day ☕\n", attributes: base))
+        var linkAttrs = base
+        linkAttrs[.link] = paypalURL
+        linkAttrs[.foregroundColor] = NSColor.linkColor
+        linkAttrs[.underlineStyle] = NSUnderlineStyle.single.rawValue
+        body.append(NSAttributedString(string: "https://paypal.me/sunayong", attributes: linkAttrs))
+
+        tv.textStorage?.setAttributedString(body)
+        scroll.documentView = tv
+        alert.accessoryView = scroll
 
         if let img = NSImage(systemSymbolName: "desktopcomputer", accessibilityDescription: nil) {
             img.isTemplate = false
@@ -272,5 +311,11 @@ final class StatusBarManager: NSObject {
 
     @objc private func spaceChanged(_ note: Notification) {
         syncAndRefresh()
+    }
+
+    func textView(_ textView: NSTextView, clickedOnLink link: Any, at charIndex: Int) -> Bool {
+        guard let url = link as? URL else { return false }
+        NSWorkspace.shared.open(url)
+        return true
     }
 }
