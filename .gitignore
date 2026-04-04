@@ -5,3 +5,5 @@ Switcher.dmg
 *.xcodeproj/
 *.xcworkspace/
 .DS_Store
+Switcher Installer/
+Switcher.icns
