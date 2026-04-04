@@ -10,6 +10,9 @@ CREATE_DMG="$SCRIPT_DIR/vendor/create-dmg/create-dmg"
 
 cd "$PROJECT_DIR"
 
+echo "Bumping version (patch +1)..."
+"$SCRIPT_DIR/bump-version.sh" "$PROJECT_DIR/Resources/Info.plist"
+
 if [[ ! -x "$CREATE_DMG" ]]; then
     echo "Missing vendored create-dmg at: $CREATE_DMG"
     exit 1

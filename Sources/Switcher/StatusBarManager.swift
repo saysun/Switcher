@@ -1,14 +1,12 @@
 import AppKit
-import Carbon
 
-final class StatusBarManager: NSObject, NSMenuDelegate {
+final class StatusBarManager: NSObject {
     private let statusItem: NSStatusItem
     private let spaceManager = SpaceManager.shared
     private let store = SpaceNameStore.shared
     private let config = ConfigStore.shared
     private var renamePanel: RenamePanel?
     private var shortcutPanel: ShortcutPanel?
-    private var menuKeyMonitor: Any?
     /// Last desktop Space ID order we rendered; used to detect add/remove without switching.
     private var lastSpaceSnapshot: [Int] = []
     private var spacePollTimer: Timer?
@@ -77,6 +75,10 @@ final class StatusBarManager: NSObject, NSMenuDelegate {
     // MARK: - Title
 
     private static let appDisplayName = "Switcher"
+
+    private static var appMarketingVersion: String {
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "dev"
+    }
 
     /// Menu bar label: desktop name, or app name when unknown; normalize common lowercase "switcher".
     private func menuBarLabel(forSpaceID spaceID: Int, position: Int) -> String {
@@ -172,62 +174,7 @@ final class StatusBarManager: NSObject, NSMenuDelegate {
         quit.target = self
         menu.addItem(quit)
 
-        menu.delegate = self
         statusItem.menu = menu
-    }
-
-    // MARK: - Menu keyboard (digits switch immediately)
-
-    private func removeMenuKeyMonitorIfNeeded() {
-        if let m = menuKeyMonitor {
-            NSEvent.removeMonitor(m)
-            menuKeyMonitor = nil
-        }
-    }
-
-    /// Plain 1–9 (main keyboard or keypad) while the menu is open — switch without Enter.
-    private func menuDigitIndex(from event: NSEvent) -> Int? {
-        let blocked = event.modifierFlags.intersection([.command, .control, .option])
-        if !blocked.isEmpty { return nil }
-
-        if let s = event.charactersIgnoringModifiers, s.count == 1, let v = Int(s), (1 ... 9).contains(v) {
-            return v
-        }
-        if let s = event.characters, s.count == 1, let v = Int(s), (1 ... 9).contains(v) {
-            return v
-        }
-
-        switch Int(event.keyCode) {
-        case kVK_ANSI_1: return 1
-        case kVK_ANSI_2: return 2
-        case kVK_ANSI_3: return 3
-        case kVK_ANSI_4: return 4
-        case kVK_ANSI_5: return 5
-        case kVK_ANSI_6: return 6
-        case kVK_ANSI_7: return 7
-        case kVK_ANSI_8: return 8
-        case kVK_ANSI_9: return 9
-        default:
-            let kc = Int(event.keyCode)
-            if (83 ... 91).contains(kc) { return kc - 82 }
-            return nil
-        }
-    }
-
-    func menuWillOpen(_ menu: NSMenu) {
-        removeMenuKeyMonitorIfNeeded()
-        menuKeyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
-            guard let self = self else { return event }
-            guard self.statusItem.menu === menu else { return event }
-            guard let digit = self.menuDigitIndex(from: event) else { return event }
-            self.spaceManager.switchTo(desktopIndex: digit)
-            menu.cancelTracking()
-            return nil
-        }
-    }
-
-    func menuDidClose(_ menu: NSMenu) {
-        removeMenuKeyMonitorIfNeeded()
     }
 
     // MARK: - Actions
@@ -273,7 +220,7 @@ final class StatusBarManager: NSObject, NSMenuDelegate {
         let alert = NSAlert()
         alert.messageText = "Switcher"
         alert.informativeText = """
-            Version 1.0.0
+            Version \(Self.appMarketingVersion)
 
             A lightweight menu bar utility for naming \
             and switching between macOS desktop Spaces.

@@ -10,6 +10,9 @@ BUNDLE_ID="com.switcher.app"
 
 cd "$PROJECT_DIR"
 
+echo "Bumping version (patch +1)..."
+"$SCRIPT_DIR/bump-version.sh" "$PROJECT_DIR/Resources/Info.plist"
+
 # 1. Kill any running Switcher
 echo "Stopping $APP_NAME..."
 pkill -f "$APP_NAME.app/Contents/MacOS/$APP_NAME" 2>/dev/null && sleep 1 || true
