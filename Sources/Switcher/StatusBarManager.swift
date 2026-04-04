@@ -9,6 +9,9 @@ final class StatusBarManager: NSObject, NSMenuDelegate {
     private var renamePanel: RenamePanel?
     private var shortcutPanel: ShortcutPanel?
     private var menuKeyMonitor: Any?
+    /// Last desktop Space ID order we rendered; used to detect add/remove without switching.
+    private var lastSpaceSnapshot: [Int] = []
+    private var spacePollTimer: Timer?
 
     override init() {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
@@ -36,6 +39,24 @@ final class StatusBarManager: NSObject, NSMenuDelegate {
             self?.statusItem.button?.performClick(nil)
         }
         registerCurrentShortcut()
+        startSpaceListPolling()
+    }
+
+    /// macOS does not post a notification when desktops are added or removed—only when you switch.
+    private func startSpaceListPolling() {
+        spacePollTimer?.invalidate()
+        let timer = Timer(timeInterval: 1.25, repeats: true) { [weak self] _ in
+            self?.pollSpaceListIfChanged()
+        }
+        timer.tolerance = 0.35
+        RunLoop.main.add(timer, forMode: .common)
+        spacePollTimer = timer
+    }
+
+    private func pollSpaceListIfChanged() {
+        let current = spaceManager.desktopSpaceIDs()
+        guard current != lastSpaceSnapshot else { return }
+        syncAndRefresh()
     }
 
     private func registerCurrentShortcut() {
@@ -50,6 +71,7 @@ final class StatusBarManager: NSObject, NSMenuDelegate {
         store.syncOrder(spaceIDs)
         updateTitle(spaceIDs: spaceIDs)
         rebuildMenu(spaceIDs: spaceIDs)
+        lastSpaceSnapshot = spaceIDs
     }
 
     // MARK: - Title
