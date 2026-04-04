@@ -40,11 +40,17 @@ struct ShortcutConfig: Codable, Equatable {
     }
 }
 
+private struct PersistedConfig: Codable {
+    var shortcut: ShortcutConfig?
+    var showDesktopLabel: Bool?
+}
+
 final class ConfigStore {
     static let shared = ConfigStore()
 
     private let fileURL: URL
     private(set) var shortcut: ShortcutConfig = .default
+    private(set) var showDesktopLabel: Bool = true
 
     private init() {
         let dir = FileManager.default.homeDirectoryForCurrentUser
@@ -59,15 +65,27 @@ final class ConfigStore {
         save()
     }
 
-    private func load() {
-        guard let data = try? Data(contentsOf: fileURL),
-              let decoded = try? JSONDecoder().decode(ShortcutConfig.self, from: data)
-        else { return }
+    func setShowDesktopLabel(_ show: Bool) {
+        showDesktopLabel = show
+        save()
+    }
 
-        if Self.isValidShortcut(decoded) {
-            shortcut = decoded
-        } else {
-            shortcut = .default
+    private func load() {
+        guard let data = try? Data(contentsOf: fileURL) else { return }
+
+        if let full = try? JSONDecoder().decode(PersistedConfig.self, from: data) {
+            if let sc = full.shortcut, Self.isValidShortcut(sc) {
+                shortcut = sc
+            }
+            if let show = full.showDesktopLabel {
+                showDesktopLabel = show
+            }
+            return
+        }
+
+        if let sc = try? JSONDecoder().decode(ShortcutConfig.self, from: data),
+           Self.isValidShortcut(sc) {
+            shortcut = sc
             save()
         }
     }
@@ -78,9 +96,10 @@ final class ConfigStore {
     }
 
     private func save() {
+        let persisted = PersistedConfig(shortcut: shortcut, showDesktopLabel: showDesktopLabel)
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-        guard let data = try? encoder.encode(shortcut) else { return }
+        guard let data = try? encoder.encode(persisted) else { return }
         try? data.write(to: fileURL, options: .atomic)
     }
 }

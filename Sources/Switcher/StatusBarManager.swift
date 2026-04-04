@@ -7,6 +7,7 @@ final class StatusBarManager: NSObject {
     private let config = ConfigStore.shared
     private var renamePanel: RenamePanel?
     private var shortcutPanel: ShortcutPanel?
+    private let desktopLabel = DesktopLabel()
     /// Last desktop Space ID order we rendered; used to detect add/remove without switching.
     private var lastSpaceSnapshot: [Int] = []
     private var spacePollTimer: Timer?
@@ -93,10 +94,21 @@ final class StatusBarManager: NSObject {
         guard let index = spaceManager.activeDesktopIndex(),
               index >= 1, index <= spaceIDs.count else {
             statusItem.button?.title = Self.appDisplayName
+            updateDesktopLabel(text: Self.appDisplayName)
             return
         }
         let spaceID = spaceIDs[index - 1]
-        statusItem.button?.title = menuBarLabel(forSpaceID: spaceID, position: index)
+        let name = menuBarLabel(forSpaceID: spaceID, position: index)
+        statusItem.button?.title = name
+        updateDesktopLabel(text: "\(index). \(name)")
+    }
+
+    private func updateDesktopLabel(text: String) {
+        if config.showDesktopLabel {
+            desktopLabel.update(text: text)
+        } else {
+            desktopLabel.hide()
+        }
     }
 
     // MARK: - Menu
@@ -165,6 +177,15 @@ final class StatusBarManager: NSObject {
         menu.addItem(configItem)
         menu.addItem(.separator())
 
+        let labelToggle = NSMenuItem(
+            title: config.showDesktopLabel ? "Hide Desktop Label" : "Show Desktop Label",
+            action: #selector(handleToggleLabel),
+            keyEquivalent: ""
+        )
+        labelToggle.target = self
+        menu.addItem(labelToggle)
+        menu.addItem(.separator())
+
         let aboutItem = NSMenuItem(title: "About Switcher", action: #selector(handleAbout), keyEquivalent: "")
         aboutItem.target = self
         menu.addItem(aboutItem)
@@ -214,6 +235,11 @@ final class StatusBarManager: NSObject {
             self?.syncAndRefresh()
         }
         shortcutPanel?.show()
+    }
+
+    @objc private func handleToggleLabel() {
+        config.setShowDesktopLabel(!config.showDesktopLabel)
+        syncAndRefresh()
     }
 
     @objc private func handleAbout() {
