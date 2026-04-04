@@ -1,6 +1,7 @@
 .build/
 .swiftpm/
 Switcher.app/
+Switcher.dmg
 *.xcodeproj/
 *.xcworkspace/
 .DS_Store

@@ -20,9 +20,12 @@ swift build -c release
 
 # 3. Bundle
 rm -rf "$APP_BUNDLE"
-mkdir -p "$APP_BUNDLE/Contents/MacOS"
+mkdir -p "$APP_BUNDLE/Contents/MacOS" "$APP_BUNDLE/Contents/Resources"
 cp ".build/release/$APP_NAME" "$APP_BUNDLE/Contents/MacOS/"
 cp "Resources/Info.plist" "$APP_BUNDLE/Contents/"
+if [[ -f "Resources/Switcher.icns" ]]; then
+    cp "Resources/Switcher.icns" "$APP_BUNDLE/Contents/Resources/"
+fi
 
 # 4. Sign
 xattr -cr "$APP_BUNDLE"
