@@ -1,9 +1,11 @@
 import AppKit
 
-final class RenamePanel: NSObject, NSTextFieldDelegate {
+final class RenamePanel: NSObject, NSTextFieldDelegate, NSWindowDelegate {
     private let panel: NSPanel
     private var entries: [(spaceID: Int, position: Int, field: NSTextField)] = []
     private let store = SpaceNameStore.shared
+    private let config = ConfigStore.shared
+    private var didRestoreHotKey = false
     var onUpdate: (() -> Void)?
 
     init(spaceIDs: [Int]) {
@@ -26,6 +28,8 @@ final class RenamePanel: NSObject, NSTextFieldDelegate {
         panel.level = .floating
 
         super.init()
+
+        panel.delegate = self
 
         let content = NSView(frame: NSRect(x: 0, y: 0, width: width, height: contentHeight))
 
@@ -50,6 +54,9 @@ final class RenamePanel: NSObject, NSTextFieldDelegate {
             field.placeholderString = "Desktop \(pos)"
             field.font = NSFont.systemFont(ofSize: 13)
             field.usesSingleLineMode = true
+            field.isEditable = true
+            field.isSelectable = true
+            field.refusesFirstResponder = false
             field.tag = i
             field.delegate = self
             content.addSubview(field)
@@ -74,12 +81,25 @@ final class RenamePanel: NSObject, NSTextFieldDelegate {
     }
 
     func show() {
+        didRestoreHotKey = false
+        HotKeyManager.shared.unregister()
         panel.center()
-        panel.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
+        panel.makeKeyAndOrderFront(nil)
         if let first = entries.first?.field {
             panel.makeFirstResponder(first)
         }
+    }
+
+    private func restoreHotKeyIfNeeded() {
+        guard !didRestoreHotKey else { return }
+        didRestoreHotKey = true
+        let sc = config.shortcut
+        HotKeyManager.shared.register(keyCode: sc.keyCode, modifiers: sc.modifiers)
+    }
+
+    func windowWillClose(_ notification: Notification) {
+        restoreHotKeyIfNeeded()
     }
 
     // MARK: - Auto-save on every edit
