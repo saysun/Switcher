@@ -51,8 +51,8 @@ cp -r Switcher.app /Applications/
 ## Usage
 
 - **Menu bar** shows `◆ <current desktop name>`
-- **Click** the menu bar item to see all desktops
-- **Click a desktop** to switch to it
+- **Click** the menu bar item to see all desktops (or use shortcut key)
+- **Click a desktop** to switch to it (or num + enter)
 - **Rename Desktop → pick a desktop** to give it a custom name
 
 ## Configuration
