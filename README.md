@@ -21,32 +21,17 @@ A lightweight macOS menu bar app for naming and switching between desktop Spaces
 
 ## Setup
 
-### 1. Enable Desktop Switching Shortcuts
-
+### 1. download installer from release (https://github.com/saysun/Switcher/releases)
+### 2. install by clicking the Switcher installer.
+### 3. open the Switcher app in Applications
+On first launch, macOS will ask for **Accessibility** permission. Grant it so Switcher can
+simulate keyboard shortcuts to switch desktops.
+### 4. Enable Desktop Switching Shortcuts
 Go to **System Settings → Keyboard → Keyboard Shortcuts → Mission Control** and enable
 "Switch to Desktop 1" through "Switch to Desktop 9" (or however many you use).
 
-### 2. Build
+https://www.youtube.com/watch?v=TM1FQi0uFHo
 
-```bash
-chmod +x scripts/bundle.sh
-./scripts/bundle.sh
-```
-
-### 3. Run
-
-```bash
-open Switcher.app
-```
-
-On first launch, macOS will ask for **Accessibility** permission. Grant it so Switcher can
-simulate keyboard shortcuts to switch desktops.
-
-### 4. Install (optional)
-
-```bash
-cp -r Switcher.app /Applications/
-```
 
 ## Usage
 
