@@ -5,6 +5,8 @@ A lightweight macOS menu bar app for naming and switching between desktop Spaces
 <img width="482" height="416" alt="image" src="https://github.com/user-attachments/assets/5b694efc-04d8-4a5c-bcac-e455447b2827" />
 <img src="Resources/screenshot2.png" width="500" alt="Rename Panel">
 
+https://www.youtube.com/watch?v=DZfzuiSTXr4
+
 ## Features
 
 - Shows current desktop name in the menu bar
