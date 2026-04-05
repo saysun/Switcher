@@ -7,6 +7,7 @@ final class StatusBarManager: NSObject, NSTextViewDelegate {
     private let config = ConfigStore.shared
     private var renamePanel: RenamePanel?
     private var shortcutPanel: ShortcutPanel?
+    private var windowTileShortcutPanel: WindowTileShortcutPanel?
     private let desktopLabel = DesktopLabel()
     /// Last desktop Space ID order we rendered; used to detect add/remove without switching.
     private var lastSpaceSnapshot: [Int] = []
@@ -34,10 +35,13 @@ final class StatusBarManager: NSObject, NSTextViewDelegate {
             object: nil
         )
 
-        HotKeyManager.shared.onTrigger = { [weak self] in
+        HotKeyManager.shared.onMenuTrigger = { [weak self] in
             self?.statusItem.button?.performClick(nil)
         }
-        registerCurrentShortcut()
+        HotKeyManager.shared.onTile = { region in
+            WindowTileManager.shared.tileFocusedWindow(region)
+        }
+        registerAllHotKeys()
         startSpaceListPolling()
     }
 
@@ -58,9 +62,8 @@ final class StatusBarManager: NSObject, NSTextViewDelegate {
         syncAndRefresh()
     }
 
-    private func registerCurrentShortcut() {
-        let sc = config.shortcut
-        HotKeyManager.shared.register(keyCode: sc.keyCode, modifiers: sc.modifiers)
+    private func registerAllHotKeys() {
+        HotKeyManager.shared.registerFromPersistedConfig()
     }
 
     // MARK: - Sync & Refresh
@@ -169,12 +172,21 @@ final class StatusBarManager: NSObject, NSTextViewDelegate {
         menu.addItem(hint)
 
         let configItem = NSMenuItem(
-            title: "Configure Shortcut\u{2026}",
+            title: "Desktop shortcuts\u{2026}",
             action: #selector(handleConfigureShortcut),
             keyEquivalent: ""
         )
         configItem.target = self
         menu.addItem(configItem)
+        menu.addItem(.separator())
+
+        let tileItem = NSMenuItem(
+            title: "Configure Window Shortcuts\u{2026}",
+            action: #selector(handleConfigureWindowShortcuts),
+            keyEquivalent: ""
+        )
+        tileItem.target = self
+        menu.addItem(tileItem)
         menu.addItem(.separator())
 
         let labelToggle = NSMenuItem(
@@ -231,10 +243,19 @@ final class StatusBarManager: NSObject, NSTextViewDelegate {
     @objc private func handleConfigureShortcut() {
         shortcutPanel = ShortcutPanel()
         shortcutPanel?.onChange = { [weak self] in
-            self?.registerCurrentShortcut()
+            self?.registerAllHotKeys()
             self?.syncAndRefresh()
         }
         shortcutPanel?.show()
+    }
+
+    @objc private func handleConfigureWindowShortcuts() {
+        windowTileShortcutPanel = WindowTileShortcutPanel()
+        windowTileShortcutPanel?.onChange = { [weak self] in
+            self?.registerAllHotKeys()
+            self?.syncAndRefresh()
+        }
+        windowTileShortcutPanel?.show()
     }
 
     @objc private func handleToggleLabel() {

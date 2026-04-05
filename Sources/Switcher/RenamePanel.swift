@@ -94,8 +94,7 @@ final class RenamePanel: NSObject, NSTextFieldDelegate, NSWindowDelegate {
     private func restoreHotKeyIfNeeded() {
         guard !didRestoreHotKey else { return }
         didRestoreHotKey = true
-        let sc = config.shortcut
-        HotKeyManager.shared.register(keyCode: sc.keyCode, modifiers: sc.modifiers)
+        HotKeyManager.shared.registerFromPersistedConfig()
     }
 
     func windowWillClose(_ notification: Notification) {

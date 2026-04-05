@@ -18,7 +18,7 @@ final class ShortcutPanel: NSObject {
             backing: .buffered,
             defer: false
         )
-        panel.title = "Configure Shortcut"
+        panel.title = "Desktop shortcuts"
         panel.isFloatingPanel = true
         panel.becomesKeyOnlyIfNeeded = false
         panel.level = .floating
@@ -82,9 +82,12 @@ final class ShortcutPanel: NSObject {
             guard mods != 0 else { return event }
 
             let sc = ShortcutConfig(keyCode: UInt32(event.keyCode), modifiers: mods)
-            self.config.setShortcut(sc)
-            self.displayLabel.stringValue = sc.displayString
-            self.onChange?()
+            if self.config.setShortcut(sc) {
+                self.displayLabel.stringValue = sc.displayString
+                self.onChange?()
+            } else {
+                NSSound.beep()
+            }
             return nil
         }
     }
@@ -97,9 +100,12 @@ final class ShortcutPanel: NSObject {
     }
 
     @objc private func resetClicked() {
-        config.setShortcut(.default)
-        displayLabel.stringValue = ShortcutConfig.default.displayString
-        onChange?()
+        if config.setShortcut(.default) {
+            displayLabel.stringValue = ShortcutConfig.default.displayString
+            onChange?()
+        } else {
+            NSSound.beep()
+        }
     }
 
     @objc private func doneClicked() {

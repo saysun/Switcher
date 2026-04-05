@@ -167,12 +167,12 @@ Click the menu item to see all desktops and switch between them.
 You can set a custom global shortcut to quickly trigger the Switcher menu from any application.
 
 1. Click the Switcher menu bar icon
-2. Select **Configure Shortcut…**
+2. Select **Desktop shortcuts…**
 3. Press your desired key combination
 4. Click **Save**
 
 ```
-   ┌─ Configure Shortcut ─────────────────────────┐
+   ┌─ Desktop shortcuts ─────────────────────────┐
    │                                              │
    │   Press a key combination:                   │
    │                                              │
