@@ -58,19 +58,3 @@ cp -r Switcher.app /Applications/
 ## Configuration
 
 Desktop names are stored in `~/.config/switcher/spaces.json`.
-
-## How It Works
-
-| Component | Technique |
-|---|---|
-| Space detection | Private CGS APIs (`CGSCopyManagedDisplaySpaces`, `CGSGetActiveSpace`) |
-| Space switching | Simulates Ctrl+Number keyboard shortcuts via `CGEvent` |
-| Change monitoring | `NSWorkspace.activeSpaceDidChangeNotification` |
-| Menu bar | AppKit `NSStatusItem` + `NSMenu` |
-| Persistence | JSON file |
-
-## Limitations
-
-- Direct switching supports desktops 1–9 only (macOS keyboard shortcut limit)
-- Space names are mapped by ordinal position, not by internal ID
-- Multi-display: shows all spaces across displays; switching targets the focused display
