@@ -30,6 +30,7 @@ simulate keyboard shortcuts to switch desktops.
 Go to **System Settings → Keyboard → Keyboard Shortcuts → Mission Control** and enable
 "Switch to Desktop 1" through "Switch to Desktop 9" (or however many you use).
 
+Set up Video: 
 https://www.youtube.com/watch?v=TM1FQi0uFHo
 
 
